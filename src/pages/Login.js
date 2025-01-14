@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 const Login = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [role, setRole] = useState('ADMIN'); // Default is 'ADMIN'
     const navigate = useNavigate();
 
     const handleLogin = async (e) => {
@@ -14,16 +15,20 @@ const Login = () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ username, password }),
+                body: JSON.stringify({ username, password, role }),
             });
-    
+
             if (response.ok) {
                 const token = await response.text();
                 console.log('Received token:', token);
-    
+
                 localStorage.setItem('jwtToken', token);
-    
-                navigate('/dashboard');
+
+                if (role === 'ADMIN') {
+                    navigate('/dashboard');
+                } else {
+                    navigate('/userDashboard');
+                }
             } else {
                 const errorData = await response.json();
                 alert(errorData.message || 'Invalid credentials');
@@ -33,13 +38,13 @@ const Login = () => {
             alert('An error occurred while logging in. Please try again.');
         }
     };
-    
-    
 
     return (
         <div className="d-flex justify-content-center align-items-center vh-100 bg-light">
             <form className="container p-4 bg-white rounded shadow-sm" onSubmit={handleLogin} style={{ maxWidth: '400px' }}>
-                <h2 className="text-center mb-4">Login <small className="text-muted">_as Admin</small></h2>
+                <h2 className="text-center mb-4">
+                    Login <small className="text-muted">_as {role}</small>
+                </h2>
                 <div className="mb-3">
                     <label htmlFor="username" className="form-label">Username</label>
                     <input
@@ -61,6 +66,18 @@ const Login = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                     />
+                </div>
+                <div className="mb-3">
+                    <label htmlFor="role" className="form-label">Role</label>
+                    <select
+                        id="role"
+                        className="form-control"
+                        value={role}
+                        onChange={(e) => setRole(e.target.value)}
+                    >
+                        <option value="ADMIN">Admin</option>
+                        <option value="USER">User</option>
+                    </select>
                 </div>
                 <button type="submit" className="btn btn-primary w-100">Login</button>
             </form>
